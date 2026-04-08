@@ -11,6 +11,9 @@ export class Projectile {
   aoERadius = 5;
   slowDuration = 0;
   slowFactor = 1;
+  sourceFaction: 'player' | 'enemy' = 'player';
+  /** Set to true once this projectile has dealt its damage */
+  hit = false;
   private style: 'arrow' | 'magic' | 'frost' | 'fire';
   private trail: THREE.Mesh[] = [];
   private scene: THREE.Scene | null = null;

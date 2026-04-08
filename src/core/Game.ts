@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { GamePhase, Faction, UnitType, TowerType } from '../types';
-import { CHARGE_KILL_THRESHOLD, TOWER_STATS } from '../constants';
+import { CHARGE_KILL_THRESHOLD, GOLD_PER_KILL } from '../constants';
 import { GameState } from './GameState';
 import { EventBus } from './EventBus';
 import { Clock } from './Clock';
@@ -10,6 +10,8 @@ import { CameraController } from '../scene/CameraController';
 import { LightingSetup } from '../scene/LightingSetup';
 import { Terrain } from '../scene/Terrain';
 import { ParticleSystem } from '../scene/ParticleSystem';
+import { FloatingText } from '../scene/FloatingText';
+import { GoldMine } from '../scene/GoldMine';
 import { Castle } from '../entities/Castle';
 import { Unit } from '../entities/Unit';
 import { UNIT_TYPE_ORDER } from '../entities/UnitTypes';
@@ -29,6 +31,8 @@ export class Game {
   private lighting: LightingSetup;
   private terrain: Terrain;
   private particles: ParticleSystem;
+  private floatingText: FloatingText;
+  private goldMine: GoldMine;
 
   private state: GameState;
   private eventBus: EventBus;
@@ -52,6 +56,7 @@ export class Game {
   // Tower placement state
   private pendingTowerType: TowerType | null = null;
   private paused = false;
+  private goldIncomeTimer = 0;
 
   constructor(canvas: HTMLCanvasElement) {
     this.state = new GameState();
@@ -65,6 +70,9 @@ export class Game {
     this.terrain = new Terrain();
     this.sceneManager.scene.add(this.terrain.group);
     this.particles = new ParticleSystem(this.sceneManager.scene);
+    this.floatingText = new FloatingText(this.sceneManager.scene);
+    this.goldMine = new GoldMine();
+    this.sceneManager.scene.add(this.goldMine.group);
 
     // Input
     this.input = new InputManager(this.sceneManager.camera, canvas, this.eventBus);
@@ -157,14 +165,28 @@ export class Game {
       this.cameraController.shake(0.3);
     });
 
+    // Villager bought → add visual miner
+    this.eventBus.on('villagerBought', () => {
+      this.goldMine.addVillager();
+    });
+
+    // Buy villager button
+    this.ui.goldDisplay.setBuyVillagerCallback(() => {
+      if (this.state.phase !== GamePhase.BATTLE) return;
+      this.economySystem.buyVillager();
+    });
+
     // Combat effects
     this.eventBus.on('unitHit', (unit: Unit, damage: number) => {
       this.particles.emit(unit.mesh.position, 0xffaa00, 3);
+      this.floatingText.spawnDamage(unit.mesh.position, damage);
     });
 
     this.eventBus.on('unitKilled', (unit: Unit) => {
       this.particles.emit(unit.mesh.position, 0xff4444, 6);
       this.cameraController.shake(0.5);
+      // Show gold earned
+      this.floatingText.spawnGold(unit.mesh.position, GOLD_PER_KILL);
     });
 
     this.eventBus.on('projectileHit', (pos: THREE.Vector3) => {
@@ -259,6 +281,7 @@ export class Game {
   private cleanup(): void {
     this.laneManager.clear(this.sceneManager.scene);
     this.combatSystem.clear(this.sceneManager.scene);
+    this.floatingText.clear();
     if (this.towerSystem) this.towerSystem.clear();
     if (this.playerCastle) {
       this.sceneManager.scene.remove(this.playerCastle.mesh);
@@ -301,8 +324,32 @@ export class Game {
       // Tower panel: show which slots are full
       const slotsFull = this.towerSystem.towers.map((t) => t !== null);
       this.ui.towerPanel.update(this.economySystem.playerGold, slotsFull);
+
+      // Villager UI
+      this.ui.goldDisplay.updateVillagerUI(
+        this.economySystem.playerGold,
+        this.economySystem.villagerCount,
+        this.economySystem.nextVillagerCost,
+        this.economySystem.playerIncomeRate
+      );
+
+      // Periodic gold income floater from mine
+      this.goldIncomeTimer += dt;
+      if (this.goldIncomeTimer >= 2) {
+        this.goldIncomeTimer = 0;
+        const income = this.economySystem.drainIncomeAccumulator();
+        if (income > 0) {
+          const minePos = this.goldMine.group.position.clone();
+          minePos.y += 3;
+          this.floatingText.spawnGold(minePos, Math.round(income));
+        }
+      }
+
+      // Gold mine animations
+      this.goldMine.update(dt);
     }
 
+    this.floatingText.update(dt);
     this.particles.update(dt);
     this.cameraController.update(dt);
     this.sceneManager.render();

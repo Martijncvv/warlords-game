@@ -58,6 +58,7 @@ export class CombatSystem {
         damage,
         style
       );
+      proj.sourceFaction = attacker.faction;
       scene.add(proj.mesh);
       proj.setScene(scene);
       this.projectiles.push(proj);
@@ -76,36 +77,77 @@ export class CombatSystem {
   }
 
   private updateProjectiles(dt: number, laneManager: LaneManager, scene: THREE.Scene): void {
+    const HIT_RADIUS = 2.0; // proximity to count as a hit
+
     for (let i = this.projectiles.length - 1; i >= 0; i--) {
       const proj = this.projectiles[i];
       proj.update(dt);
 
-      if (proj.mesh.position.y <= 0.5 && proj.velocity.y < 0) {
+      // Proximity-based hit detection against enemy units
+      if (!proj.hit) {
+        const pos = proj.mesh.position;
+        const enemyFaction = proj.sourceFaction === 'player' ? 'enemy' : 'player';
+        const allUnits = laneManager.getAllUnits();
+
         if (proj.isAoE) {
-          const allUnits = laneManager.getAllUnits();
+          // AoE: check if close enough to any enemy to detonate
+          let shouldDetonate = false;
           for (const unit of allUnits) {
-            if (!unit.isAlive()) continue;
-            const dx = unit.mesh.position.x - proj.mesh.position.x;
-            const dz = unit.mesh.position.z - proj.mesh.position.z;
-            const dist = Math.sqrt(dx * dx + dz * dz);
-            if (dist < proj.aoERadius) {
-              const aoeDmg = proj.damage * 0.5;
-              unit.takeDamage(aoeDmg);
-              this.eventBus.emit('unitHit', unit, aoeDmg);
-              if (!unit.isAlive()) {
-                this.eventBus.emit('unitKilled', unit, null);
-              }
+            if (unit.faction !== enemyFaction || !unit.isAlive()) continue;
+            const dx = unit.mesh.position.x - pos.x;
+            const dy = unit.mesh.position.y + 1 - pos.y;
+            const dz = unit.mesh.position.z - pos.z;
+            if (Math.sqrt(dx * dx + dy * dy + dz * dz) < HIT_RADIUS + 1) {
+              shouldDetonate = true;
+              break;
             }
           }
-        }
-        // Apply slow if frost projectile
-        if (proj.slowDuration > 0) {
-          const nearby = laneManager.getEnemiesInRadius(proj.mesh.position, 3);
-          for (const u of nearby) {
-            u.applySlow(proj.slowFactor, proj.slowDuration);
+          // Also detonate on ground impact
+          if (shouldDetonate || (pos.y <= 0.5 && proj.velocity.y < 0)) {
+            for (const unit of allUnits) {
+              if (unit.faction !== enemyFaction || !unit.isAlive()) continue;
+              const dx = unit.mesh.position.x - pos.x;
+              const dz = unit.mesh.position.z - pos.z;
+              const dist = Math.sqrt(dx * dx + dz * dz);
+              if (dist < proj.aoERadius) {
+                const aoeDmg = proj.damage * (1 - dist / proj.aoERadius * 0.5);
+                unit.takeDamage(aoeDmg);
+                this.eventBus.emit('unitHit', unit, aoeDmg);
+                if (!unit.isAlive()) {
+                  this.eventBus.emit('unitKilled', unit, null);
+                }
+              }
+            }
+            proj.hit = true;
+            this.eventBus.emit('projectileHit', pos.clone());
+            proj.active = false;
+          }
+        } else {
+          // Single-target: hit the closest enemy within radius
+          let closestUnit: Unit | null = null;
+          let closestDist = HIT_RADIUS;
+          for (const unit of allUnits) {
+            if (unit.faction !== enemyFaction || !unit.isAlive()) continue;
+            const dx = unit.mesh.position.x - pos.x;
+            const dy = unit.mesh.position.y + 1 - pos.y;
+            const dz = unit.mesh.position.z - pos.z;
+            const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+            if (dist < closestDist) {
+              closestDist = dist;
+              closestUnit = unit;
+            }
+          }
+          if (closestUnit) {
+            this.applyDamage(closestUnit, proj.damage, null);
+            proj.hit = true;
+            this.eventBus.emit('projectileHit', pos.clone());
+            proj.active = false;
           }
         }
-        this.eventBus.emit('projectileHit', proj.mesh.position.clone());
+      }
+
+      // Also expire if it hits the ground without hitting anything
+      if (!proj.hit && proj.mesh.position.y <= 0 && proj.velocity.y < 0) {
         proj.active = false;
       }
 

@@ -9,8 +9,8 @@ export const CASTLE_X_OFFSET = FIELD_LENGTH / 2 - 5; // 55
 
 // Economy
 export const STARTING_GOLD = 100;
-export const GOLD_PER_SECOND = 1;
-export const GOLD_PER_KILL = 5;
+export const GOLD_PER_SECOND = 2;
+export const GOLD_PER_KILL = 7;
 export const CHARGE_KILL_THRESHOLD = 20;
 
 // Castle
@@ -113,7 +113,7 @@ export const TOWER_STATS: Record<TowerType, TowerStats> = {
     damage: 10,
     range: 40,
     attackCooldown: 0.8,
-    cost: 150,
+    cost: 75,
     label: 'Arrow Tower',
     key: '7',
     description: 'Fast single-target',
@@ -126,7 +126,7 @@ export const TOWER_STATS: Record<TowerType, TowerStats> = {
     damage: 5,
     range: 30,
     attackCooldown: 1.5,
-    cost: 200,
+    cost: 100,
     label: 'Frost Tower',
     key: '8',
     description: 'Slows enemies 50%',
@@ -139,7 +139,7 @@ export const TOWER_STATS: Record<TowerType, TowerStats> = {
     damage: 15,
     range: 25,
     attackCooldown: 2.5,
-    cost: 300,
+    cost: 150,
     label: 'Fire Tower',
     key: '9',
     description: 'AoE splash damage',

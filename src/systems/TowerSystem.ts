@@ -78,42 +78,64 @@ export class TowerSystem {
   }
 
   private updateProjectiles(dt: number, laneManager: LaneManager): void {
+    const HIT_RADIUS = 2.5;
+
     for (let i = this.projectiles.length - 1; i >= 0; i--) {
       const proj = this.projectiles[i];
       proj.update(dt);
+      const pos = proj.mesh.position;
 
-      if (proj.mesh.position.y <= 0.5 && proj.velocity.y < 0) {
-        // Apply damage
+      if (!proj.hit) {
         if (proj.isAoE) {
-          const enemies = laneManager.getEnemiesInRadius(proj.mesh.position, proj.aoERadius);
-          for (const unit of enemies) {
-            unit.takeDamage(proj.damage);
-            this.eventBus.emit('unitHit', unit, proj.damage);
-            if (!unit.isAlive()) {
-              this.eventBus.emit('unitKilled', unit, null);
+          // AoE: detonate near any enemy or on ground
+          let shouldDetonate = false;
+          const enemies = laneManager.getEnemiesInRadius(pos, HIT_RADIUS + 1);
+          if (enemies.length > 0) shouldDetonate = true;
+          if (pos.y <= 0.5 && proj.velocity.y < 0) shouldDetonate = true;
+
+          if (shouldDetonate) {
+            const splashTargets = laneManager.getEnemiesInRadius(pos, proj.aoERadius);
+            for (const unit of splashTargets) {
+              const dx = unit.mesh.position.x - pos.x;
+              const dz = unit.mesh.position.z - pos.z;
+              const dist = Math.sqrt(dx * dx + dz * dz);
+              const dmg = proj.damage * (1 - dist / proj.aoERadius * 0.5);
+              unit.takeDamage(dmg);
+              this.eventBus.emit('unitHit', unit, dmg);
+              if (!unit.isAlive()) {
+                this.eventBus.emit('unitKilled', unit, null);
+              }
             }
+            proj.hit = true;
+            this.eventBus.emit('projectileHit', pos.clone());
+            proj.active = false;
           }
         } else {
-          // Single target: damage closest enemy to impact point
-          const target = laneManager.findClosestEnemyGlobal(proj.mesh.position, 3);
+          // Single target: hit closest enemy within radius
+          const target = laneManager.findClosestEnemyGlobal(pos, HIT_RADIUS);
           if (target) {
             target.takeDamage(proj.damage);
             this.eventBus.emit('unitHit', target, proj.damage);
             if (!target.isAlive()) {
               this.eventBus.emit('unitKilled', target, null);
             }
+            proj.hit = true;
+            this.eventBus.emit('projectileHit', pos.clone());
+            proj.active = false;
           }
         }
 
-        // Apply slow
-        if (proj.slowDuration > 0) {
-          const nearby = laneManager.getEnemiesInRadius(proj.mesh.position, 5);
+        // Apply slow on hit
+        if (proj.hit && proj.slowDuration > 0) {
+          const nearby = laneManager.getEnemiesInRadius(pos, 5);
           for (const u of nearby) {
             u.applySlow(proj.slowFactor, proj.slowDuration);
           }
         }
+      }
 
-        this.eventBus.emit('projectileHit', proj.mesh.position.clone());
+      // Expire if it misses and hits the ground
+      if (!proj.hit && pos.y <= 0 && proj.velocity.y < 0) {
         proj.active = false;
       }
 

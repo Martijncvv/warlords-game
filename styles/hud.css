@@ -1,0 +1,318 @@
+#hud {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 10;
+}
+
+#hud > * {
+  pointer-events: auto;
+}
+
+/* Gold Display */
+#gold-display {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: rgba(0, 0, 0, 0.7);
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 20px;
+  font-weight: bold;
+  color: #ffd700;
+  border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+/* Territory / Castle HP Bars */
+#territory-bar {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 20px;
+  background: rgba(0, 0, 0, 0.7);
+  padding: 8px 16px;
+  border-radius: 6px;
+}
+
+.hp-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hp-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  opacity: 0.8;
+  width: 70px;
+}
+
+.hp-bar-bg {
+  width: 120px;
+  height: 14px;
+  background: #333;
+  border-radius: 7px;
+  overflow: hidden;
+}
+
+.hp-bar-fill {
+  height: 100%;
+  border-radius: 7px;
+  transition: width 0.3s ease;
+  width: 100%;
+}
+
+.player-fill {
+  background: linear-gradient(90deg, #2266cc, #44aaff);
+}
+
+.enemy-fill {
+  background: linear-gradient(90deg, #cc2222, #ff4444);
+}
+
+.hp-value {
+  font-size: 13px;
+  font-weight: bold;
+  min-width: 30px;
+  text-align: right;
+}
+
+/* Charge Bar */
+#charge-container {
+  position: absolute;
+  top: 56px;
+  left: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.7);
+  padding: 6px 12px;
+  border-radius: 6px;
+}
+
+.charge-label {
+  font-size: 11px;
+  font-weight: bold;
+  color: #ff8800;
+  text-transform: uppercase;
+}
+
+.charge-bar-bg {
+  width: 100px;
+  height: 10px;
+  background: #333;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.charge-bar-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #ff8800, #ffcc00);
+  border-radius: 5px;
+  transition: width 0.3s ease;
+}
+
+/* Unit Panel */
+#unit-panel {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+}
+
+.unit-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 14px;
+  background: rgba(0, 0, 0, 0.8);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.15s;
+  min-width: 80px;
+}
+
+.unit-btn:hover {
+  border-color: #ffd700;
+  background: rgba(255, 215, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+.unit-btn:active {
+  transform: translateY(0);
+}
+
+.unit-btn.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.unit-btn.disabled:hover {
+  transform: none;
+  background: rgba(0, 0, 0, 0.8);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.unit-key {
+  font-size: 10px;
+  opacity: 0.6;
+  font-family: monospace;
+}
+
+.unit-name {
+  font-size: 13px;
+  font-weight: bold;
+}
+
+.unit-cost {
+  font-size: 11px;
+  color: #ffd700;
+}
+
+/* Tower Panel */
+#tower-section {
+  position: absolute;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+#tower-panel {
+  display: flex;
+  gap: 8px;
+}
+
+.tower-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 6px 12px;
+  background: rgba(0, 0, 0, 0.8);
+  border: 2px solid rgba(100, 200, 255, 0.25);
+  border-radius: 8px;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.15s;
+  min-width: 90px;
+}
+
+.tower-btn:hover {
+  border-color: #66ccff;
+  background: rgba(100, 200, 255, 0.12);
+  transform: translateY(-2px);
+}
+
+.tower-btn:active {
+  transform: translateY(0);
+}
+
+.tower-btn.selected {
+  border-color: #ffdd44;
+  background: rgba(255, 221, 68, 0.15);
+  box-shadow: 0 0 10px rgba(255, 221, 68, 0.3);
+}
+
+.tower-btn.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.tower-btn.disabled:hover {
+  transform: none;
+  background: rgba(0, 0, 0, 0.8);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.tower-key {
+  font-size: 10px;
+  opacity: 0.6;
+  font-family: monospace;
+}
+
+.tower-name {
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.tower-cost {
+  font-size: 11px;
+  color: #ffd700;
+}
+
+.tower-desc {
+  font-size: 9px;
+  opacity: 0.6;
+}
+
+#tower-status {
+  font-size: 12px;
+  color: #ffdd44;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 4px 12px;
+  border-radius: 4px;
+  text-align: center;
+}
+
+/* Lane Indicators */
+#lane-indicators {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.lane-indicator {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.lane-indicator.active {
+  background: rgba(255, 255, 0, 0.3);
+  border-color: #ffd700;
+  color: #ffd700;
+  font-weight: bold;
+}
+
+/* Tooltip */
+#tooltip {
+  position: fixed;
+  background: rgba(0, 0, 0, 0.9);
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 1.5;
+  pointer-events: none;
+  z-index: 100;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  max-width: 200px;
+}

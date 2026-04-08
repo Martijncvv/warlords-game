@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Warlords: Call to Arms V2</title>
+  <script type="module" crossorigin src="./assets/index-BVYdqRq0.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-C9QVJC6k.css">
+</head>
+<body>
+  <canvas id="game-canvas"></canvas>
+
+  <!-- HUD Overlay -->
+  <div id="hud" class="hidden">
+    <!-- Gold Display -->
+    <div id="gold-display">Gold: 100</div>
+
+    <!-- Castle HP Bars -->
+    <div id="territory-bar">
+      <div class="hp-section player-hp">
+        <span class="hp-label">Your Castle</span>
+        <div class="hp-bar-bg">
+          <div id="player-hp-fill" class="hp-bar-fill player-fill"></div>
+        </div>
+        <span id="player-hp-text" class="hp-value">500</span>
+      </div>
+      <div class="hp-section enemy-hp">
+        <span class="hp-label">Enemy Castle</span>
+        <div class="hp-bar-bg">
+          <div id="enemy-hp-fill" class="hp-bar-fill enemy-fill"></div>
+        </div>
+        <span id="enemy-hp-text" class="hp-value">500</span>
+      </div>
+    </div>
+
+    <!-- Charge Bar -->
+    <div id="charge-container">
+      <span class="charge-label">CHARGE</span>
+      <div class="charge-bar-bg">
+        <div id="charge-bar" class="charge-bar-fill"></div>
+      </div>
+    </div>
+
+    <!-- Unit Panel -->
+    <div id="unit-panel"></div>
+
+    <!-- Tower Panel -->
+    <div id="tower-section">
+      <div id="tower-panel"></div>
+      <div id="tower-status" class="hidden"></div>
+    </div>
+
+    <!-- Lane Indicators -->
+    <div id="lane-indicators"></div>
+  </div>
+
+  <!-- Tooltip -->
+  <div id="tooltip" class="hidden"></div>
+
+  <!-- Menu Screen -->
+  <div id="menu-screen">
+    <div class="menu-content">
+      <h1 class="menu-title">WARLORDS</h1>
+      <h2 class="menu-subtitle">Call to Arms</h2>
+      <div class="menu-instructions">
+        <p>Deploy units and build towers to destroy the enemy castle!</p>
+        <div class="controls-list">
+          <div><kbd>W</kbd> / <kbd>S</kbd> Select lane</div>
+          <div><kbd>1</kbd>-<kbd>5</kbd> Deploy unit</div>
+          <div><kbd>7</kbd>-<kbd>9</kbd> Select tower &rarr; click slot</div>
+          <div><kbd>Esc</kbd> Cancel tower placement</div>
+        </div>
+      </div>
+      <button id="start-btn" class="menu-btn">START BATTLE</button>
+    </div>
+  </div>
+
+  <!-- Result Screen -->
+  <div id="result-screen" class="hidden">
+    <div class="result-content">
+      <h1 id="result-title"></h1>
+      <p id="result-subtitle"></p>
+      <button id="play-again-btn" class="menu-btn">PLAY AGAIN</button>
+    </div>
+  </div>
+
+</body>
+</html>
